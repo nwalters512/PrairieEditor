@@ -1,7 +1,7 @@
 import * as React from "react";
 import AppToolbar from "./AppToolbar";
 import AppFooter from "./AppFooter";
-import Editor from "./Editor";
+import Editor from "./EditorContainer";
 
 const App: React.FunctionComponent = () => {
   return (
