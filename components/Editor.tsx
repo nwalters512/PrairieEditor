@@ -24,6 +24,8 @@ const Editor: React.FunctionComponent = () => {
           flex-direction: column;
           flex: 1 1 0%;
           background-color: yellow;
+          min-width: 0;
+          min-height: 0;
         }
       `}</style>
     </div>
