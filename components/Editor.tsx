@@ -3,10 +3,10 @@ import { StyleSheet, css } from "aphrodite";
 import MonacoEditor from "react-monaco-editor";
 import { editor, Uri } from "monaco-editor";
 import ReactResizeDetector from "react-resize-detector";
+import { FileEntry } from "./types";
 
 export interface Props {
-  contents: string;
-  path: string;
+  entry: FileEntry | undefined;
 }
 
 const findModel = (path: string) => {
@@ -18,8 +18,11 @@ const editorStates = new Map<
   editor.ICodeEditorViewState | null | undefined
 >();
 
-const Editor: React.FunctionComponent<Props> = props => {
-  const { contents, path } = props;
+const Editor: React.FunctionComponent<Props> = ({ entry }) => {
+  if (!entry) {
+    return null;
+  }
+  const { path, contents } = entry.item;
   const editorRef = React.useRef<MonacoEditor>(null);
 
   const handleResize = () => {

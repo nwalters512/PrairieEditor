@@ -1,11 +1,13 @@
 import * as React from "react";
 import { StyleSheet, css } from "aphrodite";
+import { Base64 } from "js-base64";
 
 import AppToolbar from "./AppToolbar";
 import AppFooter from "./AppFooter";
-import EditorContainer from "./EditorContainer";
+import DynamicEditor from "./DynamicEditor";
 import { FileEntry } from "./types";
 import axios from "../utils/axios";
+import FileTree from "./FileTree/FileTree";
 
 const findFocusedEntry = (entries: FileEntry[]) =>
   entries.find(({ state }) => state.isFocused === true);
@@ -20,7 +22,7 @@ const makeEntriesFromApi = (files: APIFile[]): FileEntry[] => {
     (file): FileEntry => ({
       item: {
         path: file.path,
-        contents: file.contents
+        contents: Base64.decode(file.contents)
       },
       state: {}
     })
@@ -46,15 +48,26 @@ const App: React.FunctionComponent = () => {
       .catch(err => console.error(err));
   }, []);
 
+  const onEntriesChange = React.useCallback(
+    newFileEntries => {
+      setFileEntries(newFileEntries);
+    },
+    [setFileEntries]
+  );
+
   const entry = findFocusedEntry(fileEntries);
   return (
     <div className={css(styles.wrapper)}>
       <AppToolbar />
-      <EditorContainer
-        fileEntriesLoading={filesLoading}
-        fileEntries={fileEntries}
-        entry={entry}
-      />
+      <div className={css(styles.editor)}>
+        <FileTree
+          fileEntriesLoading={filesLoading}
+          fileEntries={fileEntries}
+          entry={entry}
+          onEntriesChange={onEntriesChange}
+        />
+        <DynamicEditor entry={entry} />
+      </div>
       <AppFooter />
     </div>
   );
@@ -66,6 +79,11 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     height: "100vh",
     width: "100vw"
+  },
+  editor: {
+    display: "flex",
+    flexDirection: "row",
+    flex: "1 1 0%"
   }
 });
 
