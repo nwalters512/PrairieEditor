@@ -5,9 +5,6 @@ import ReactResizeDetector from "react-resize-detector";
 const Editor: React.FunctionComponent = () => {
   const editorRef = React.useRef<MonacoEditor>(null);
   const handleResize = () => {
-    console.log("resize!");
-    console.log(editorRef.current);
-    console.log(editorRef.current!.editor);
     editorRef.current &&
       editorRef.current.editor &&
       editorRef.current.editor.layout();
