@@ -12,6 +12,9 @@ import { StyleSheetServer } from "aphrodite";
 
 interface Props {
   ids: string[];
+  css: {
+    content: string;
+  };
 }
 
 class MyDocument extends Document<Props> {

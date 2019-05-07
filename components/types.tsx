@@ -1,10 +1,7 @@
-export type TextFileEntry = Readonly<{
+export type FileEntry = Readonly<{
   item: {
     path: string;
-    type: "file";
-    content: string;
-    virtual?: true;
-    asset?: false;
+    contents: string;
   };
   state: {
     isOpen?: boolean;
@@ -14,38 +11,3 @@ export type TextFileEntry = Readonly<{
     isExpanded?: false;
   };
 }>;
-
-export type AssetFileEntry = Readonly<{
-  item: {
-    path: string;
-    type: "file";
-    uri: string;
-    asset: true;
-    virtual?: true;
-  };
-  state: {
-    isOpen?: boolean;
-    isFocused?: boolean;
-    isSelected?: boolean;
-    isCreating?: boolean;
-    isExpanded?: false;
-  };
-}>;
-
-export type FolderEntry = Readonly<{
-  item: {
-    path: string;
-    type: "folder";
-    asset?: false;
-    virtual?: false;
-  };
-  state: {
-    isOpen?: boolean;
-    isFocused?: boolean;
-    isExpanded?: boolean;
-    isSelected?: boolean;
-    isCreating?: boolean;
-  };
-}>;
-
-export type FileSystemEntry = TextFileEntry | AssetFileEntry | FolderEntry;

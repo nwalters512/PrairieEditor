@@ -3,44 +3,51 @@ import { StyleSheet, css } from "aphrodite";
 
 import AppToolbar from "./AppToolbar";
 import AppFooter from "./AppFooter";
-import Editor from "./EditorContainer";
-import { FileSystemEntry } from "./types";
+import EditorContainer from "./EditorContainer";
+import { FileEntry } from "./types";
+import axios from "../utils/axios";
 
-const findFocusedEntry = (entries: FileSystemEntry[]) =>
-  entries.find(({ item, state }) => {
-    return item.type === "file" && state.isFocused === true;
-  });
+const findFocusedEntry = (entries: FileEntry[]) =>
+  entries.find(({ state }) => state.isFocused === true);
 
-const dummyEntries: FileSystemEntry[] = [
-  {
+interface APIFile {
+  path: string;
+  contents: string;
+}
+
+const makeEntriesFromApi = (files: APIFile[]): FileEntry[] => {
+  return files.map(file => ({
     item: {
-      type: "file",
-      path: "question.html",
-      content: "<div>Hello, world!</div>"
+      path: file.path,
+      contents: file.contents
     },
-    state: {
-      isFocused: true
-    }
-  },
-  {
-    item: {
-      type: "file",
-      path: "server.py",
-      content: "import thing from thing"
-    },
-    state: {
-      isFocused: false
-    }
-  }
-];
+    state: {}
+  }));
+};
 
 const App: React.FunctionComponent = () => {
-  const [fileEntries, setFileEntries] = React.useState(dummyEntries);
+  const [filesLoading, setFilesLoading] = React.useState(true);
+  const [fileEntries, setFileEntries] = React.useState<FileEntry[]>([]);
+  React.useEffect(() => {
+    setFilesLoading(true);
+    axios
+      .get("/course_instances/1/questions/1/files")
+      .then(res => {
+        setFilesLoading(false);
+        setFileEntries(makeEntriesFromApi(res.data));
+      })
+      .catch(err => console.error(err));
+  }, []);
+
   const entry = findFocusedEntry(fileEntries);
   return (
     <div className={css(styles.wrapper)}>
       <AppToolbar />
-      <Editor fileEntries={fileEntries} entry={entry} />
+      <EditorContainer
+        fileEntriesLoading={filesLoading}
+        fileEntries={fileEntries}
+        entry={entry}
+      />
       <AppFooter />
     </div>
   );

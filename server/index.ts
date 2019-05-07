@@ -1,5 +1,6 @@
 import * as express from "express";
 import * as next from "next";
+import proxy = require("express-http-proxy");
 import { join } from "path";
 
 const port = process.env.PORT || 3000;
@@ -22,6 +23,15 @@ app.prepare().then(() => {
   monacoFiles.forEach(fileName => {
     server.use(`/${fileName}`, express.static(getMonacoFilePath(fileName)));
   });
+
+  server.use(
+    "/api",
+    proxy("localhost:3000", {
+      proxyReqPathResolver: req => {
+        return `/pl/api/v1${req.path}`;
+      }
+    })
+  );
 
   server.get("*", (req: express.Request, res: express.Response) => {
     return handle(req, res);

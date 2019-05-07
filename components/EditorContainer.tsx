@@ -1,11 +1,23 @@
 import * as React from "react";
-import FileTree from "./FileTree";
+import FileTree from "./FileTree/FileTree";
 import DynamicEditor from "./DynamicEditor";
+import { FileEntry } from "./types";
 
-const EditorContainer: React.FunctionComponent = () => {
+export interface Props {
+  fileEntriesLoading: boolean;
+  fileEntries: FileEntry[];
+  entry?: FileEntry;
+}
+
+const EditorContainer: React.FunctionComponent<Props> = props => {
+  const { fileEntriesLoading, fileEntries, entry } = props;
   return (
     <div className="editor">
-      <FileTree />
+      <FileTree
+        fileEntriesLoading={fileEntriesLoading}
+        fileEntries={fileEntries}
+        entry={entry}
+      />
       <DynamicEditor />
       <style jsx>{`
         .editor {
