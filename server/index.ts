@@ -18,7 +18,8 @@ app.prepare().then(() => {
   const monacoFiles = [
     "editor.worker.js",
     "typescript.worker.js",
-    "json.worker.js"
+    "json.worker.js",
+    "html.worker.js"
   ];
   monacoFiles.forEach(fileName => {
     server.use(`/${fileName}`, express.static(getMonacoFilePath(fileName)));
