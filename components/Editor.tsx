@@ -1,6 +1,7 @@
 import * as React from "react";
 import { StyleSheet, css } from "aphrodite";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import { initVimMode } from "monaco-vim";
 import ReactResizeDetector from "react-resize-detector";
 import { FileEntry } from "./types";
 
@@ -22,8 +23,10 @@ const Editor: React.FunctionComponent<Props> = ({ entry }) => {
     return null;
   }
 
-  const editorRef = React.useRef<monaco.editor.IStandaloneCodeEditor>();
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const vimStatusbarRef = React.useRef<HTMLDivElement>(null);
+  const editorRef = React.useRef<monaco.editor.IStandaloneCodeEditor>();
+  const vimRef = React.useRef<{ dispose: () => void }>();
 
   // Called when we know we've resized
   const handleResize = () => {
@@ -34,8 +37,17 @@ const Editor: React.FunctionComponent<Props> = ({ entry }) => {
   React.useEffect(() => {
     if (containerRef.current) {
       editorRef.current = monaco.editor.create(containerRef.current);
+      if (vimStatusbarRef.current) {
+        vimRef.current = initVimMode(
+          editorRef.current,
+          vimStatusbarRef.current
+        );
+      }
       monaco.editor.setTheme("vs-dark");
-      return () => editorRef.current && editorRef.current.dispose();
+      return () => {
+        editorRef.current && editorRef.current.dispose();
+        vimRef.current && vimRef.current.dispose();
+      };
     }
     return () => {};
   }, [containerRef.current]);
@@ -76,6 +88,7 @@ const Editor: React.FunctionComponent<Props> = ({ entry }) => {
         style={{ height: "100%", width: "100%", overflow: "hidden" }}
         ref={containerRef}
       />
+      <div className="bg-dark text-muted px-2" ref={vimStatusbarRef} />
       <ReactResizeDetector handleWidth handleHeight onResize={handleResize} />
     </div>
   );
