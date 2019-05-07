@@ -1,3 +1,4 @@
+import { Props } from "./Editor";
 import dynamic from "next/dynamic";
 import { StyleSheet, css } from "aphrodite";
 import { Spinner } from "reactstrap";
@@ -11,9 +12,11 @@ const DynamicEditor = dynamic(() => import("./Editor"), {
   )
 });
 
-export default () => {
-  return <DynamicEditor />;
+const Editor: React.FunctionComponent<Props> = props => {
+  return <DynamicEditor {...props} />;
 };
+
+export default Editor;
 
 const styles = StyleSheet.create({
   loading: {

@@ -1,5 +1,5 @@
 import * as React from "react";
-import classNames from "classnames";
+import { StyleSheet, css } from "aphrodite";
 
 type Props = {
   direction: "horizontal" | "vertical";
@@ -99,46 +99,47 @@ export default class ResizablePane extends React.PureComponent<Props, State> {
   _pane = React.createRef<HTMLDivElement>();
 
   render() {
-    const handleClassNames = classNames({
-      handle: true,
-      horizontal: this.props.direction === "horizontal",
-      vertical: this.props.direction === "vertical"
-    });
     return (
       <div
         ref={this._pane}
-        className={`resizable-container ${this.props.className || ""}`}
+        className={`${css(styles.container)} ${this.props.className || ""}`}
       >
         {this.props.children}
         <div
-          className={handleClassNames}
+          className={css(
+            styles.handle,
+            this.props.direction === "horizontal"
+              ? styles.horizontal
+              : styles.vertical
+          )}
           onMouseDown={this._handleMouseDown}
           onMouseUp={this._handleMouseUp}
         />
-        <style jsx>{`
-          .resizable-container {
-            position: relative;
-          }
-          .handle {
-            position: absolute;
-            z-index: 1;
-          }
-          .horizontal {
-            right: -12px;
-            top: 0;
-            bottom: 0;
-            width: 12px;
-            cursor: col-resize;
-          }
-          .vertical {
-            top: -12px;
-            left: 0;
-            right: 0;
-            height: 12px;
-            cursor: row-resize;
-          }
-        `}</style>
       </div>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    position: "relative"
+  },
+  handle: {
+    position: "absolute",
+    zIndex: 1
+  },
+  horizontal: {
+    right: -12,
+    top: 0,
+    bottom: 0,
+    width: 12,
+    cursor: "col-resize"
+  },
+  vertical: {
+    top: -12,
+    left: 0,
+    right: 0,
+    height: 12,
+    cursor: "row-resize"
+  }
+});

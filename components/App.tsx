@@ -16,13 +16,20 @@ interface APIFile {
 }
 
 const makeEntriesFromApi = (files: APIFile[]): FileEntry[] => {
-  return files.map(file => ({
-    item: {
-      path: file.path,
-      contents: file.contents
-    },
-    state: {}
-  }));
+  const entries = files.map(
+    (file): FileEntry => ({
+      item: {
+        path: file.path,
+        contents: file.contents
+      },
+      state: {}
+    })
+  );
+
+  // Mark the first file as open
+  entries[0].state.isFocused = true;
+  entries[0].state.isOpen = true;
+  return entries;
 };
 
 const App: React.FunctionComponent = () => {
