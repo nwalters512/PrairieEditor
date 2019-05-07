@@ -1,7 +1,6 @@
 import * as React from "react";
 import { StyleSheet, css } from "aphrodite";
-import MonacoEditor from "react-monaco-editor";
-import { editor, Uri } from "monaco-editor";
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import ReactResizeDetector from "react-resize-detector";
 import { FileEntry } from "./types";
 
@@ -10,59 +9,73 @@ export interface Props {
 }
 
 const findModel = (path: string) => {
-  return editor.getModels().find(model => model.uri.path === path);
+  return monaco.editor.getModels().find(model => model.uri.path === path);
 };
 
 const editorStates = new Map<
   string,
-  editor.ICodeEditorViewState | null | undefined
+  monaco.editor.ICodeEditorViewState | null | undefined
 >();
 
 const Editor: React.FunctionComponent<Props> = ({ entry }) => {
   if (!entry) {
     return null;
   }
-  const { path, contents } = entry.item;
-  const editorRef = React.useRef<MonacoEditor>(null);
 
+  const editorRef = React.useRef<monaco.editor.IStandaloneCodeEditor>();
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  // Called when we know we've resized
   const handleResize = () => {
-    editorRef.current &&
-      editorRef.current.editor &&
-      editorRef.current.editor.layout();
+    editorRef.current && editorRef.current.layout();
   };
 
+  // Handles creating the editor after we mount
   React.useEffect(() => {
-    if (editorRef.current && editorRef.current.editor) {
+    if (containerRef.current) {
+      editorRef.current = monaco.editor.create(containerRef.current);
+      monaco.editor.setTheme("vs-dark");
+      return () => editorRef.current && editorRef.current.dispose();
+    }
+    return () => {};
+  }, [containerRef.current]);
+  const { path, contents } = entry.item;
+
+  // Handles swapping between files when the entry changes
+  React.useEffect(() => {
+    if (editorRef.current) {
       let model = findModel(path);
       if (!model || model.isDisposed()) {
-        console.log(editor.getModels());
         // Need to create a new model
-        model = editor.createModel(
+        model = monaco.editor.createModel(
           contents,
           undefined,
-          Uri.from({ scheme: "file", path })
+          monaco.Uri.from({ scheme: "file", path })
         );
       }
 
-      editorRef.current.editor.setModel(model);
+      editorRef.current.setModel(model);
+      editorRef.current.focus();
       const editorState = editorStates.get(path);
       if (editorState) {
-        editorRef.current.editor.restoreViewState(editorState);
+        editorRef.current.restoreViewState(editorState);
       }
-      editor.setTheme("vs-dark");
+      monaco.editor.setTheme("vs-dark");
     }
 
     return () => {
-      if (editorRef.current && editorRef.current.editor) {
-        editorStates.set(path, editorRef.current.editor.saveViewState());
+      if (editorRef.current) {
+        editorStates.set(path, editorRef.current.saveViewState());
       }
     };
   }, [path]);
+
   return (
     <div className={css(styles.container)}>
-      <div style={{ height: "100%", width: "100%", overflow: "hidden" }}>
-        <MonacoEditor theme="vs-dark" ref={editorRef} />
-      </div>
+      <div
+        style={{ height: "100%", width: "100%", overflow: "hidden" }}
+        ref={containerRef}
+      />
       <ReactResizeDetector handleWidth handleHeight onResize={handleResize} />
     </div>
   );
