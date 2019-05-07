@@ -8,7 +8,6 @@ export interface Props {
 
 const FileTreeItem: React.FunctionComponent<Props> = props => {
   const { onOpen, entry } = props;
-  console.log(entry);
   return <div onClick={() => onOpen(entry.item.path)}>{entry.item.path}</div>;
 };
 

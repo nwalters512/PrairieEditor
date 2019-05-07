@@ -38,6 +38,12 @@ class MyDocument extends Document<Props> {
   }
 
   render() {
+    const bodyStyle = {
+      overscrollBehavior: "none",
+      height: "100%",
+      width: "100%",
+      overflow: "hidden"
+    };
     return (
       <Html>
         <Head>
@@ -52,7 +58,7 @@ class MyDocument extends Document<Props> {
             dangerouslySetInnerHTML={{ __html: this.props.css.content }}
           />
         </Head>
-        <body>
+        <body style={bodyStyle}>
           <Main />
           <NextScript />
         </body>

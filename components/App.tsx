@@ -8,6 +8,7 @@ import DynamicEditor from "./DynamicEditor";
 import { FileEntry } from "./types";
 import axios from "../utils/axios";
 import FileTree from "./FileTree/FileTree";
+import { useBoolean } from "react-hanger";
 
 const findFocusedEntry = (entries: FileEntry[]) =>
   entries.find(({ state }) => state.isFocused === true);
@@ -37,6 +38,7 @@ const makeEntriesFromApi = (files: APIFile[]): FileEntry[] => {
 const App: React.FunctionComponent = () => {
   const [filesLoading, setFilesLoading] = React.useState(true);
   const [fileEntries, setFileEntries] = React.useState<FileEntry[]>([]);
+  const vimMode = useBoolean(false);
   React.useEffect(() => {
     setFilesLoading(true);
     axios
@@ -66,9 +68,12 @@ const App: React.FunctionComponent = () => {
           entry={entry}
           onEntriesChange={onEntriesChange}
         />
-        <DynamicEditor entry={entry} />
+        <DynamicEditor entry={entry} vimModeEnabled={vimMode.value} />
       </div>
-      <AppFooter />
+      <AppFooter
+        vimModeEnabled={vimMode.value}
+        toggleVimModeEnabled={vimMode.toggle}
+      />
     </div>
   );
 };
@@ -83,6 +88,8 @@ const styles = StyleSheet.create({
   editor: {
     display: "flex",
     flexDirection: "row",
+    minHeight: 0,
+    minWidth: 0,
     flex: "1 1 0%"
   }
 });

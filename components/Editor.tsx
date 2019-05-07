@@ -3,10 +3,12 @@ import { StyleSheet, css } from "aphrodite";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import { initVimMode } from "monaco-vim";
 import ReactResizeDetector from "react-resize-detector";
+import { useBoolean } from "react-hanger";
 import { FileEntry } from "./types";
 
 export interface Props {
   entry: FileEntry | undefined;
+  vimModeEnabled: boolean;
 }
 
 const findModel = (path: string) => {
@@ -18,15 +20,17 @@ const editorStates = new Map<
   monaco.editor.ICodeEditorViewState | null | undefined
 >();
 
-const Editor: React.FunctionComponent<Props> = ({ entry }) => {
+const Editor: React.FunctionComponent<Props> = ({ entry, vimModeEnabled }) => {
   if (!entry) {
     return null;
   }
 
+  const { path, contents } = entry.item;
+
   const containerRef = React.useRef<HTMLDivElement>(null);
   const vimStatusbarRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<monaco.editor.IStandaloneCodeEditor>();
-  const vimRef = React.useRef<{ dispose: () => void }>();
+  const vimRef = React.useRef<{ dispose: () => void } | null>(null);
 
   // Called when we know we've resized
   const handleResize = () => {
@@ -37,21 +41,31 @@ const Editor: React.FunctionComponent<Props> = ({ entry }) => {
   React.useEffect(() => {
     if (containerRef.current) {
       editorRef.current = monaco.editor.create(containerRef.current);
-      if (vimStatusbarRef.current) {
-        vimRef.current = initVimMode(
-          editorRef.current,
-          vimStatusbarRef.current
-        );
-      }
       monaco.editor.setTheme("vs-dark");
       return () => {
         editorRef.current && editorRef.current.dispose();
-        vimRef.current && vimRef.current.dispose();
       };
     }
     return () => {};
-  }, [containerRef.current]);
-  const { path, contents } = entry.item;
+  }, []);
+
+  // Handles vim keybindings change
+  React.useEffect(() => {
+    if (
+      vimModeEnabled &&
+      editorRef.current &&
+      vimStatusbarRef.current &&
+      !vimRef.current
+    ) {
+      vimRef.current = initVimMode(editorRef.current, vimStatusbarRef.current);
+    }
+    return () => {
+      if (vimModeEnabled && vimRef.current) {
+        vimRef.current.dispose();
+        vimRef.current = null;
+      }
+    };
+  }, [vimModeEnabled]);
 
   // Handles swapping between files when the entry changes
   React.useEffect(() => {
@@ -84,17 +98,34 @@ const Editor: React.FunctionComponent<Props> = ({ entry }) => {
 
   return (
     <div className={css(styles.container)}>
-      <div
-        style={{ height: "100%", width: "100%", overflow: "hidden" }}
-        ref={containerRef}
-      />
-      <div className="bg-dark text-muted px-2" ref={vimStatusbarRef} />
-      <ReactResizeDetector handleWidth handleHeight onResize={handleResize} />
+      <div className={css(styles.outerContainer)}>
+        <ReactResizeDetector handleWidth handleHeight onResize={handleResize}>
+          <div
+            style={{ height: "100%", width: "100%", overflow: "hidden" }}
+            ref={containerRef}
+          />
+        </ReactResizeDetector>
+      </div>
+      {vimModeEnabled && (
+        <div className="bg-dark text-muted px-2 d-flex flex-row">
+          <div className="mr-auto">
+            <span ref={vimStatusbarRef} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 const styles = StyleSheet.create({
+  outerContainer: {
+    display: "flex",
+    flex: 1,
+    flexDirection: "column",
+    minWidth: 0,
+    minHeight: 0,
+    position: "relative"
+  },
   container: {
     display: "flex",
     flexDirection: "column",
