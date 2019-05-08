@@ -1,10 +1,17 @@
 import * as React from "react";
-import { Navbar, NavbarBrand } from "reactstrap";
+import { Navbar, NavbarBrand, Button } from "reactstrap";
 
-const AppToolbar: React.FunctionComponent = () => {
+export interface Props {
+  onSave: () => void;
+}
+
+const AppToolbar: React.FunctionComponent<Props> = ({ onSave }) => {
   return (
     <Navbar color="dark" dark>
       <NavbarBrand tag="span">PrairieEditor</NavbarBrand>
+      <Button color="primary" onClick={() => onSave()}>
+        Save and reload preview
+      </Button>
     </Navbar>
   );
 };

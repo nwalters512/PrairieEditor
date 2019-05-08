@@ -3,7 +3,7 @@ import axiosBase from "axios";
 const axios = axiosBase.create({
   baseURL: "/api",
   headers: {
-    "Private-Token": "3daa00ec-ef0d-4196-a0e1-13cca272dd1c"
+    "Private-Token": "9ff1d129-d1b8-4d64-98f8-0225d156d0a5"
   }
 });
 

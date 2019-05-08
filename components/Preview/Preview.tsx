@@ -1,22 +1,31 @@
 import * as React from "react";
 import { StyleSheet, css } from "aphrodite";
-import { Button } from "reactstrap";
 
-const Preview = () => {
+export interface PreviewHandles {
+  reload: () => void;
+}
+
+export interface Props {
+  courseInstanceId: number;
+  questionId: number;
+}
+
+const Preview: React.RefForwardingComponent<PreviewHandles, Props> = (
+  props,
+  ref
+) => {
+  const { courseInstanceId, questionId } = props;
   const [key, setKey] = React.useState(0);
   const reloadFrame = () => setKey(key => key + 1);
+  React.useImperativeHandle(ref, () => ({
+    reload() {
+      reloadFrame();
+    }
+  }));
   return (
     <div className={css(styles.container)}>
-      <Button
-        type="button"
-        color="success"
-        onClick={reloadFrame}
-        className="m-1"
-      >
-        Reload frame
-      </Button>
       <iframe
-        src="http://localhost:3000/pl/course_instance/1/instructor/question/1/"
+        src={`http://localhost:3000/pl/course_instance/${courseInstanceId}/instructor/question/${questionId}/`}
         key={key}
         className={css(styles.frame)}
         width="100%"
@@ -39,4 +48,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default Preview;
+export default React.forwardRef(Preview);

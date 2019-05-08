@@ -8,6 +8,7 @@ import { FileEntry } from "../types";
 export interface Props {
   entry: FileEntry | undefined;
   vimModeEnabled: boolean;
+  onContentChanged: (content: string) => void;
 }
 
 const findModel = (path: string) => {
@@ -19,7 +20,11 @@ const editorStates = new Map<
   monaco.editor.ICodeEditorViewState | null | undefined
 >();
 
-const Editor: React.FunctionComponent<Props> = ({ entry, vimModeEnabled }) => {
+const Editor: React.FunctionComponent<Props> = ({
+  entry,
+  vimModeEnabled,
+  onContentChanged
+}) => {
   if (!entry) {
     return null;
   }
@@ -30,6 +35,7 @@ const Editor: React.FunctionComponent<Props> = ({ entry, vimModeEnabled }) => {
   const vimStatusbarRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<monaco.editor.IStandaloneCodeEditor>();
   const vimRef = React.useRef<{ dispose: () => void } | null>(null);
+  const subscriptionRef = React.useRef<monaco.IDisposable>();
 
   // Called when we know we've resized
   const handleResize = () => {
@@ -39,10 +45,19 @@ const Editor: React.FunctionComponent<Props> = ({ entry, vimModeEnabled }) => {
   // Handles creating the editor after we mount
   React.useEffect(() => {
     if (containerRef.current) {
-      editorRef.current = monaco.editor.create(containerRef.current);
-      window.EDITOR = editorRef.current;
+      const editor = monaco.editor.create(containerRef.current);
+      subscriptionRef.current = editor.onDidChangeModelContent(() => {
+        const model = editor.getModel();
+
+        if (model) {
+          const value = model.getValue();
+          onContentChanged(value);
+        }
+      });
+      editorRef.current = editor;
       monaco.editor.setTheme("vs-dark");
       return () => {
+        subscriptionRef.current && subscriptionRef.current.dispose();
         editorRef.current && editorRef.current.dispose();
       };
     }

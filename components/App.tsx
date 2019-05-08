@@ -10,7 +10,8 @@ import axios from "../utils/axios";
 import FileTree from "./FileTree/FileTree";
 import { useBoolean } from "react-hanger";
 import ResizablePane from "./shared/ResizablePane";
-import Preview from "./Preview/Preview";
+import Preview, { PreviewHandles } from "./Preview/Preview";
+import updateEntry from "../actions/updateEntry";
 
 const findFocusedEntry = (entries: FileEntry[]) =>
   entries.find(({ state }) => state.isFocused === true);
@@ -37,14 +38,28 @@ const makeEntriesFromApi = (files: APIFile[]): FileEntry[] => {
   return entries;
 };
 
+const makeApiFilesFromEntries = (entries: FileEntry[]): APIFile[] => {
+  return entries.map(entry => ({
+    path: entry.item.path,
+    contents: Base64.encode(entry.item.contents)
+  }));
+};
+
+const courseInstanceId = 1;
+const questionId = 3;
+
 const App: React.FunctionComponent = () => {
   const [filesLoading, setFilesLoading] = React.useState(true);
   const [fileEntries, setFileEntries] = React.useState<FileEntry[]>([]);
+  const previewRef = React.useRef<PreviewHandles>(null);
   const vimMode = useBoolean(false);
+
   React.useEffect(() => {
     setFilesLoading(true);
     axios
-      .get("/course_instances/1/questions/1/files")
+      .get(
+        `/course_instances/${courseInstanceId}/questions/${questionId}/files`
+      )
       .then(res => {
         setFilesLoading(false);
         setFileEntries(makeEntriesFromApi(res.data));
@@ -52,17 +67,39 @@ const App: React.FunctionComponent = () => {
       .catch(err => console.error(err));
   }, []);
 
-  const onEntriesChange = React.useCallback(
-    newFileEntries => {
-      setFileEntries(newFileEntries);
-    },
-    [setFileEntries]
-  );
+  const onEntriesChange = (entries: FileEntry[]) => {
+    setFileEntries(entries);
+  };
+
+  const onContentChanged = (contents: string) => {
+    setFileEntries(entries => {
+      return entries.map(entry => {
+        if (entry.state.isFocused === true) {
+          return updateEntry(entry, { item: { contents } });
+        }
+        return entry;
+      });
+    });
+  };
+
+  const onSave = () => {
+    const files = makeApiFilesFromEntries(fileEntries);
+    axios
+      .post(
+        `/course_instances/${courseInstanceId}/questions/${questionId}/files`,
+        files
+      )
+      .then(res => {
+        console.log("save successful!");
+        previewRef.current && previewRef.current.reload();
+      })
+      .catch(err => console.error(err));
+  };
 
   const entry = findFocusedEntry(fileEntries);
   return (
     <div className={css(styles.wrapper)}>
-      <AppToolbar />
+      <AppToolbar onSave={onSave} />
       <div className={css(styles.editor)}>
         <FileTree
           fileEntriesLoading={filesLoading}
@@ -70,9 +107,17 @@ const App: React.FunctionComponent = () => {
           entry={entry}
           onEntriesChange={onEntriesChange}
         />
-        <DynamicEditor entry={entry} vimModeEnabled={vimMode.value} />
+        <DynamicEditor
+          entry={entry}
+          vimModeEnabled={vimMode.value}
+          onContentChanged={onContentChanged}
+        />
         <ResizablePane direction="horizontal" position="start">
-          <Preview />
+          <Preview
+            courseInstanceId={courseInstanceId}
+            questionId={questionId}
+            ref={previewRef}
+          />
         </ResizablePane>
       </div>
       <AppFooter
