@@ -3,8 +3,7 @@ import { StyleSheet, css } from "aphrodite";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import { initVimMode } from "monaco-vim";
 import ReactResizeDetector from "react-resize-detector";
-import { useBoolean } from "react-hanger";
-import { FileEntry } from "./types";
+import { FileEntry } from "../types";
 
 export interface Props {
   entry: FileEntry | undefined;
@@ -41,6 +40,7 @@ const Editor: React.FunctionComponent<Props> = ({ entry, vimModeEnabled }) => {
   React.useEffect(() => {
     if (containerRef.current) {
       editorRef.current = monaco.editor.create(containerRef.current);
+      window.EDITOR = editorRef.current;
       monaco.editor.setTheme("vs-dark");
       return () => {
         editorRef.current && editorRef.current.dispose();

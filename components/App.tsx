@@ -4,11 +4,13 @@ import { Base64 } from "js-base64";
 
 import AppToolbar from "./AppToolbar";
 import AppFooter from "./AppFooter";
-import DynamicEditor from "./DynamicEditor";
+import DynamicEditor from "./Editor/DynamicEditor";
 import { FileEntry } from "./types";
 import axios from "../utils/axios";
 import FileTree from "./FileTree/FileTree";
 import { useBoolean } from "react-hanger";
+import ResizablePane from "./shared/ResizablePane";
+import Preview from "./Preview/Preview";
 
 const findFocusedEntry = (entries: FileEntry[]) =>
   entries.find(({ state }) => state.isFocused === true);
@@ -69,6 +71,9 @@ const App: React.FunctionComponent = () => {
           onEntriesChange={onEntriesChange}
         />
         <DynamicEditor entry={entry} vimModeEnabled={vimMode.value} />
+        <ResizablePane direction="horizontal" position="start">
+          <Preview />
+        </ResizablePane>
       </div>
       <AppFooter
         vimModeEnabled={vimMode.value}
@@ -84,6 +89,13 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     height: "100vh",
     width: "100vw"
+  },
+  editorContainer: {
+    display: "flex",
+    flexDirection: "row",
+    minHeight: 0,
+    minWidth: 0,
+    flex: "1 1 0%"
   },
   editor: {
     display: "flex",

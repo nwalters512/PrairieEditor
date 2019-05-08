@@ -3,6 +3,7 @@ import { StyleSheet, css } from "aphrodite";
 
 type Props = {
   direction: "horizontal" | "vertical";
+  position: "start" | "end";
   children?: React.ReactNode;
   className?: string;
 };
@@ -69,7 +70,7 @@ export default class ResizablePane extends React.PureComponent<Props, State> {
   };
 
   _handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const { direction } = this.props;
+    const { direction, position } = this.props;
     const {
       resizing,
       initialPosition,
@@ -83,13 +84,23 @@ export default class ResizablePane extends React.PureComponent<Props, State> {
       let style;
 
       if (direction === "horizontal") {
-        style = `width: ${initialWidth +
-          e.pageX -
-          initialPosition.pageX}px !important;`;
+        if (position === "end") {
+          style = `width: ${initialWidth +
+            e.pageX -
+            initialPosition.pageX}px !important;`;
+        } else {
+          style = `width: ${initialWidth +
+            (initialPosition.pageX - e.pageX)}px !important;`;
+        }
       } else {
-        style = `height: ${initialHeight -
-          e.pageY +
-          initialPosition.pageY}px !important`;
+        if (position === "end") {
+          style = `height: ${initialHeight -
+            e.pageY +
+            initialPosition.pageY}px !important`;
+        } else {
+          style = `height: ${initialHeight -
+            (initialPosition.pageY + e.pageY)}px !important`;
+        }
       }
 
       this._pane.current && this._pane.current.setAttribute("style", style);
@@ -110,7 +121,14 @@ export default class ResizablePane extends React.PureComponent<Props, State> {
             styles.handle,
             this.props.direction === "horizontal"
               ? styles.horizontal
-              : styles.vertical
+              : styles.vertical,
+            this.props.direction === "horizontal"
+              ? this.props.position === "start"
+                ? styles.horizontalStart
+                : styles.horizontalEnd
+              : this.props.position === "start"
+              ? styles.verticalStart
+              : styles.verticalEnd
           )}
           onMouseDown={this._handleMouseDown}
           onMouseUp={this._handleMouseUp}
@@ -128,15 +146,25 @@ const styles = StyleSheet.create({
     position: "absolute",
     zIndex: 1
   },
+  horizontalStart: {
+    left: 0
+  },
+  horizontalEnd: {
+    right: 0
+  },
   horizontal: {
-    right: -12,
     top: 0,
     bottom: 0,
     width: 12,
     cursor: "col-resize"
   },
+  verticalStart: {
+    top: -12
+  },
+  verticalEnd: {
+    bottom: -12
+  },
   vertical: {
-    top: -12,
     left: 0,
     right: 0,
     height: 12,

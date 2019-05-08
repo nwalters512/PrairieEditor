@@ -16,7 +16,11 @@ const FileTree: React.FunctionComponent<Props> = props => {
   const { fileEntries, onEntriesChange } = props;
   return (
     <React.Fragment>
-      <ResizablePane direction="horizontal" className={css(styles.pane)}>
+      <ResizablePane
+        direction="horizontal"
+        position="end"
+        className={css(styles.pane)}
+      >
         <div className={css(styles.innerPane)}>
           {fileEntries.map(entry => (
             <FileTreeItem
